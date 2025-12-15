@@ -1,42 +1,46 @@
-import { Server } from "socket.io"
+import { Server } from "socket.io";
 
-const userSocketMap = {}
+const userSocketMap = {};
 
 export const getSocketId = (receiverId) => {
-    return userSocketMap[receiverId]
-}
+    return userSocketMap[receiverId];
+};
+
+// Export io as a variable that will be set later
+let io = null;
 
 export const initializeSocket = (server) => {
-    const io = new Server(server, {
+    io = new Server(server, {
         cors: {
             origin: "*",
             methods: ["GET", "POST"]
         }
-    })
+    });
 
     io.on("connection", (socket) => {
-        console.log(`New socket connection: ${socket.id}`)
+        console.log(`New socket connection: ${socket.id}`);
         
-        const userId = socket.handshake.query.userId
+        const userId = socket.handshake.query.userId;
         if (userId != "undefined") {
-            userSocketMap[userId] = socket.id
-            console.log(`User ${userId} connected with socket ${socket.id}`)
+            userSocketMap[userId] = socket.id;
+            console.log(`User ${userId} connected with socket ${socket.id}`);
         }
 
-        io.emit('getOnlineUsers', Object.keys(userSocketMap))
-        console.log('Online users:', Object.keys(userSocketMap))
+        io.emit('getOnlineUsers', Object.keys(userSocketMap));
+        console.log('Online users:', Object.keys(userSocketMap));
 
         socket.on('disconnect', () => {
-            console.log(`Socket disconnected: ${socket.id}`)
+            console.log(`Socket disconnected: ${socket.id}`);
             if (userId != "undefined") {
-                delete userSocketMap[userId]
-                console.log(`User ${userId} disconnected`)
+                delete userSocketMap[userId];
+                console.log(`User ${userId} disconnected`);
             }
-            io.emit('getOnlineUsers', Object.keys(userSocketMap))
-        })
-    })
+            io.emit('getOnlineUsers', Object.keys(userSocketMap));
+        });
+    });
 
-    return io
-}
+    return io;
+};
 
-export { userSocketMap }
+// Export the io instance getter
+export { io };
