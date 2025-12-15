@@ -1,4 +1,5 @@
 import express from "express";
+import http from "http";
 import dotenv from "dotenv";
 import connectDb from "./config/db.js";
 import cookieParser from "cookie-parser";
@@ -9,13 +10,18 @@ import postRouter from "./routes/post.routes.js";
 import loopRouter from "./routes/loop.routes.js";
 import storyRouter from "./routes/story.routes.js";
 import messageRouter from "./routes/message.routes.js";
-import { app, server } from "./socket.js";
+import { initializeSocket } from "./socket.js";
 
 dotenv.config();
 
+const app = express();
+const server = http.createServer(app);
 const port = process.env.PORT || 5000;
 
-/* 🔥 CORS MUST BE FIRST */
+// Initialize Socket.IO
+const io = initializeSocket(server);
+
+/* 🔥 CORS */
 app.use(cors({
   origin: [
     "http://localhost:5173",
@@ -26,9 +32,7 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-/* 🔥 Preflight fix */
 app.options("*", cors());
-
 app.use(cookieParser());
 app.use(express.json());
 
@@ -43,3 +47,5 @@ server.listen(port, () => {
   connectDb();
   console.log("🚀 Server started on port", port);
 });
+
+export { app, io, server };
